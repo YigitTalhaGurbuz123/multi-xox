@@ -1,96 +1,20 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Multi XOX</title>
   <style>
-    body { font-family: Arial, sans-serif; }
-    #board { display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 5px; margin-top: 20px; }
-    .cell { width: 100px; height: 100px; background: #eee; display: flex; justify-content: center; align-items: center; font-size: 48px; cursor: pointer; }
-    #roomInput, #joinBtn { margin-top: 10px; }
-    #status { margin-top: 10px; }
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    .cell { width: 50px; height: 50px; display: inline-block; border: 1px solid black; font-size: 32px; line-height: 50px; cursor: pointer; }
   </style>
 </head>
 <body>
   <h1>Multi XOX</h1>
-  <input id="roomInput" placeholder="Oda ID Gir" />
+  <input id="roomID" placeholder="Oda ID gir" />
   <button id="joinBtn">Odaya Katıl</button>
-  <div id="status"></div>
-  <div id="board" style="display:none;"></div>
+  <div id="game" style="margin-top:20px;"></div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-
-    let mySymbol = null;
-    let roomID = null;
-    let myTurn = false;
-    const board = document.getElementById("board");
-    const status = document.getElementById("status");
-
-    document.getElementById("joinBtn").onclick = () => {
-      roomID = document.getElementById("roomInput").value.trim();
-      if (!roomID) {
-        alert("Oda ID gir!");
-        return;
-      }
-      socket.emit("join-room", roomID);
-    };
-
-    socket.on("room-full", () => {
-      alert("Bu oda dolu!");
-    });
-
-    socket.on("symbol-assigned", (symbol) => {
-      mySymbol = symbol;
-      status.textContent = `Sembolünüz: ${mySymbol}. Rakibinizi bekleyin...`;
-    });
-
-    socket.on("start-game", () => {
-      status.textContent = `Oyun başladı! ${mySymbol === "X" ? "Siz başlıyorsunuz." : "Rakip başlıyor."}`;
-      myTurn = mySymbol === "X";
-      setupBoard();
-    });
-
-    function setupBoard() {
-      board.innerHTML = "";
-      board.style.display = "grid";
-      for (let i = 0; i < 9; i++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        cell.dataset.index = i;
-        cell.onclick = onCellClick;
-        board.appendChild(cell);
-      }
-    }
-
-    function onCellClick(e) {
-      if (!myTurn) {
-        alert("Sıra sizde değil!");
-        return;
-      }
-      const cell = e.target;
-      if (cell.textContent !== "") return;
-      const index = cell.dataset.index;
-
-      cell.textContent = mySymbol;
-      myTurn = false;
-      status.textContent = "Rakip oynuyor...";
-
-      socket.emit("move", { blockIndex: 0, cellIndex: index, symbol: mySymbol, roomID });
-    }
-
-    socket.on("move", ({ blockIndex, cellIndex, symbol }) => {
-      const cells = board.querySelectorAll(".cell");
-      cells[cellIndex].textContent = symbol;
-      myTurn = true;
-      status.textContent = "Sizin sıranız!";
-    });
-
-    socket.on("player-left", () => {
-      alert("Rakip odadan ayrıldı!");
-      location.reload();
-    });
-  </script>
+  <script src="client.js"></script>
 </body>
 </html>
